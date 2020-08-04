@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html ng-App="contactModule">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacts</title>
+
+    <script scr="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+
+</head>
+<body ng-controller="indexController">
+
+    <nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+        <a class="navbar-brand"><h4 ng-bind="title"></h4></a>
+        <form class="form-inline">
+          <button ng-click="editando = false" class="btn btn-outline-primary my-2 my-sm-0" id="btn-add">Add</button>
+        </form>
+    </nav>
+
+    <!-- <button ng-click="editando = false" class="btn btn-primary d-flex justify-content-center container w-25" id="btn-add">Add</button> -->
+
+    <div class="input-group flex-nowrap container mt-5">
+        <div class="input-group-prepend">
+          <span class="input-group-text" id="addon-wrapping">Search</span>
+        </div>
+        <input type="text" ng-model="busca" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="addon-wrapping">
+    </div>
+
+    <div class="container">
+        <table class="table table-striped mt-5">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Birthdate</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="contact in contacts | filter:busca">
+                    <td>{{contact.id}}</td>
+                    <td>{{contact.name}}</td>
+                    <td>{{contact.email}}</td>
+                    <td>{{contact.birthdate}}</td>
+                    <td><button ng-click="edit(Contact)" class="btn btn-light btn-sm">Edit</button></td>
+                    <td><button ng-click="delete(contact)" class="btn btn-secondary btn-sm">Delete</button></td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+    <!-- Modal -->
+
+    <div class="modal fade" id="modalNewContact" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 ng-if="!editando" class="modal-title" id="exampleModalLabel">Add Contact</h5>
+            <h5 ng-if="editando" class="modal-title" id="exampleModalLabel">Edit Contact</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-row">
+                      <div class="form-group col-md-6">
+                        <label for="validationServe01">Name</label>
+                        <input type="name" ng-model="Contact.name" class="form-control" id="validationServer01" required>
+                      </div>
+                      <div class="form-group col-md-6">
+                        <label for="validationServe01">Email</label>
+                        <input type="email" ng-model="Contact.email" class="form-control" id="validationServer01" required>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="validationServe01">Birthdate</label>
+                      <input type="date" ng-model="Contact.birthdate" class="form-control" id="validationServer01" placeholder="0000-00-00" required>
+                    </div>
+                </form>
+                <!-- <input type="text" ng-model="Contact.name" placeholder="Name">
+                <input type="text" ng-model="Contact.email" placeholder="Email">
+                <input type="text" ng-model="Contact.birthdate" placeholder="Birthdate"> -->
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button ng-if="!editando" ng-click="add(Contact)"  type="button" class="btn btn-primary" onclick="$('#modalNewContact').modal('hide')">Add Contact</button>
+            <button ng-if="editando" ng-click="salvar(Contact)" type="button" class="btn btn-primary" id="btnSave">Save</button>
+            </div>
+        </div>
+        </div>
+    </div>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script src="lib/angular/angular.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+   
+
+    <script>
+        $(function(){
+            $("#btn-add").click(function(){
+                $("#modalNewContact").modal();
+            });
+        })
+    </script>
+
+
+    <script type="text/javascript">
+        angular.module("contactModule",[])
+        .controller("indexController", ['$scope', '$http', function($scope, $http){
+            $scope.title = "Contacts List";
+
+            $scope.contacts = [];
+
+            var editando = true;
+
+
+            let init = function(){
+                
+                $http.get("http://localhost:3000/contacts").then(
+                    function(result){
+                        angular.forEach(result.data, function(contact){
+                            $scope.contacts.push(contact);
+                        })
+                    })
+            };
+
+
+            $scope.add = function(Contact){
+                var editando = false;
+                return $http.post("http://localhost:3000/contacts", Contact).then(
+                    function(result){
+                        var data = result.data
+                        console.log(result);
+                    })
+                    .catch(function(error) {
+                        console.log(error)
+                    });
+            };
+           
+            $scope.delete = function(contact){
+                return $http.delete("http://localhost:3000/contacts/" + contact.id).then(
+                    function(result){
+                        if (result.data)
+                        $scope.msg = "Data deleted Successfully!";
+                    }, function(result) {
+                        $scope.msg = "Service not Exists!";
+                    }
+                )
+            };
+
+            let contactEdit;
+
+            $scope.edit = function(Contact){
+                $scope.editando = true;
+                angular.copy(Contact, $scope.Contact);
+                $('#modalNewContact').modal('show');
+                // return $http.put("http://localhost:3000/contacts/" + Contact.id, Contact).then(
+                //     function(result){
+                //         if (result.data)
+                //         $scope.mgsEdit = "Contact edited";
+                //     }, function(result) {
+                //         $scope.msgEdit = "Service not Exists"
+                //     }
+                // )
+                let contactEdit = Contact;
+            };
+
+            $scope.salvar = function(contact){
+                console.log(contact);
+                contactEdit.name = contact.name;
+                contactEdit.email = contact.email;
+                contactEdit.birthdate = contact.birthdate;
+                return $http.put("http://localhost:3000/contacts/" + contact.id, contact).then(
+                    function(result){
+                        if (result.data)
+                        $scope.mgsEdit = "Contact edited";
+                    }, function(result) {
+                        $scope.msgEdit = "Service not Exists"
+                    }
+                )
+                $('#modalNewContact').modal('hide');
+            };
+
+
+
+            init();
+        }]);
+
+    </script>
+
+</body>
+</html>
