@@ -19,14 +19,16 @@
     </nav>
 
     <!-- <button ng-click="editando = false" class="btn btn-primary d-flex justify-content-center container w-25" id="btn-add">Add</button> -->
-
+    
     <div class="input-group flex-nowrap container mt-5">
+        
         <div class="input-group-prepend">
+           
           <span class="input-group-text" id="addon-wrapping">Search</span>
         </div>
-        <input type="text" ng-model="busca" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="addon-wrapping">
+        <input type="text" ng-model="busca" class="form-control" placeholder="Contact name" aria-label="Username" aria-describedby="addon-wrapping">
     </div>
-
+    
     <div class="container">
         <table class="table table-striped mt-5">
             <thead>
@@ -44,7 +46,7 @@
                     <td>{{contact.name}}</td>
                     <td>{{contact.email}}</td>
                     <td>{{contact.birthdate}}</td>
-                    <td><button ng-click="edit(Contact)" class="btn btn-light btn-sm">Edit</button></td>
+                    <td><button ng-click="edit(contact)" class="btn btn-light btn-sm">Edit</button></td>
                     <td><button ng-click="delete(contact)" class="btn btn-secondary btn-sm">Delete</button></td>
                 </tr>
             </tbody>
@@ -69,25 +71,23 @@
                     <div class="form-row">
                       <div class="form-group col-md-6">
                         <label for="validationServe01">Name</label>
-                        <input type="name" ng-model="Contact.name" class="form-control" id="validationServer01" required>
+                        <input type="name" ng-model="contact.name" class="form-control" id="validationServer01" required>
                       </div>
                       <div class="form-group col-md-6">
                         <label for="validationServe01">Email</label>
-                        <input type="email" ng-model="Contact.email" class="form-control" id="validationServer01" required>
+                        <input type="email" ng-model="contact.email" class="form-control" id="validationServer01" required>
                       </div>
                     </div>
                     <div class="form-group">
                       <label for="validationServe01">Birthdate</label>
-                      <input type="date" ng-model="Contact.birthdate" class="form-control" id="validationServer01" placeholder="0000-00-00" required>
+                      <input type="text" ng-model="contact.birthdate" class="form-control" id="validationServer01" placeholder="0000-00-00" required>
                     </div>
                 </form>
-                <!-- <input type="text" ng-model="Contact.name" placeholder="Name">
-                <input type="text" ng-model="Contact.email" placeholder="Email">
-                <input type="text" ng-model="Contact.birthdate" placeholder="Birthdate"> -->
+        
             <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button ng-if="!editando" ng-click="add(Contact)"  type="button" class="btn btn-primary" onclick="$('#modalNewContact').modal('hide')">Add Contact</button>
-            <button ng-if="editando" ng-click="salvar(Contact)" type="button" class="btn btn-primary" id="btnSave">Save</button>
+            <button ng-if="!editando" ng-click="add(contact)"  type="button" class="btn btn-primary" onclick="$('#modalNewContact').modal('hide')">Add Contact</button>
+            <button ng-if="editando" ng-click="save(contact)" type="button" class="btn btn-primary" id="btnSave">Save</button>
             </div>
         </div>
         </div>
@@ -113,7 +113,9 @@
 
     <script type="text/javascript">
         angular.module("contactModule",[])
-        .controller("indexController", ['$scope', '$http', function($scope, $http){
+        .controller("indexController", ['$scope', '$http', function($scope, $http, $route){
+
+
             $scope.title = "Contacts List";
 
             $scope.contacts = [];
@@ -132,60 +134,59 @@
             };
 
 
-            $scope.add = function(Contact){
+            $scope.add = function(contact){
                 var editando = false;
-                return $http.post("http://localhost:3000/contacts", Contact).then(
+                return $http.post("http://localhost:3000/contacts", contact).then(
                     function(result){
-                        var data = result.data
-                        console.log(result);
-                    })
-                    .catch(function(error) {
-                        console.log(error)
-                    });
+                        if (result.status = 201){
+                        alert('Successfully added!');
+                        window.location.reload();
+                        } else{
+                        alert("There was a problem!");
+                        }
+                    }
+                )
             };
            
             $scope.delete = function(contact){
                 return $http.delete("http://localhost:3000/contacts/" + contact.id).then(
                     function(result){
-                        if (result.data)
-                        $scope.msg = "Data deleted Successfully!";
-                    }, function(result) {
-                        $scope.msg = "Service not Exists!";
+                        if (result.status = 204){
+
+                           let i = $scope.contacts.indexOf(contact)                          
+                            $scope.contacts.splice(i, 1);
+
+                        
+                        // window.location.reload();
+                        } else{
+                        alert("Service not Exists!");
+                        }
                     }
                 )
             };
 
-            let contactEdit;
+            var contactEdit;
 
-            $scope.edit = function(Contact){
+            $scope.edit = function(contact){                
+                $scope.contact = angular.copy(contact);
                 $scope.editando = true;
-                angular.copy(Contact, $scope.Contact);
-                $('#modalNewContact').modal('show');
-                // return $http.put("http://localhost:3000/contacts/" + Contact.id, Contact).then(
-                //     function(result){
-                //         if (result.data)
-                //         $scope.mgsEdit = "Contact edited";
-                //     }, function(result) {
-                //         $scope.msgEdit = "Service not Exists"
-                //     }
-                // )
-                let contactEdit = Contact;
+                $('#modalNewContact').modal('show');                
             };
 
-            $scope.salvar = function(contact){
-                console.log(contact);
-                contactEdit.name = contact.name;
-                contactEdit.email = contact.email;
-                contactEdit.birthdate = contact.birthdate;
-                return $http.put("http://localhost:3000/contacts/" + contact.id, contact).then(
-                    function(result){
-                        if (result.data)
-                        $scope.mgsEdit = "Contact edited";
-                    }, function(result) {
-                        $scope.msgEdit = "Service not Exists"
-                    }
-                )
-                $('#modalNewContact').modal('hide');
+            $scope.save = function(){                
+                console.log('contact do scope',$scope.contact)
+                
+                return $http.put("http://localhost:3000/contacts/" + $scope.contact.id, $scope.contact)
+                .then((result) => {
+                    console.log(result);
+                    $scope.msg = result.statusText;
+                    $('#modalNewContact').modal('hide');
+                })
+                .catch((er) => {
+                    $scope.msg = er.message;
+                    $('#modalNewContact').modal('hide');
+                })
+                
             };
 
 
