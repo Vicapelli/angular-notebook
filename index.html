@@ -24,8 +24,18 @@
            
           <span class="input-group-text" id="addon-wrapping">Search</span>
         </div>
-        <input type="text" ng-model="busca" class="form-control" placeholder="Contact name" aria-label="Username" aria-describedby="addon-wrapping">
+        <input type="text" ng-model="busca.name" class="form-control" placeholder="Contact name" aria-label="Username" aria-describedby="addon-wrapping">
     </div>
+
+    <!-- <div class="container">
+        <div class="alert alert-success alert-dismissible" role="alert">
+            <p>{{msgSuccess}}</p>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </div> -->
+
     
     <div class="container">
         <table class="table table-striped mt-5">
@@ -153,11 +163,11 @@
 
                            let i = $scope.contacts.indexOf(contact)                          
                             $scope.contacts.splice(i, 1);
-
+                            $scope.msgSuccess = 'Contact deleted!'
                         
                         // window.location.reload();
                         } else{
-                        alert("Service not Exists!");
+                            alert("Service not Exists!");
                         }
                     }
                 )
@@ -176,6 +186,7 @@
                 
                 return $http.put("http://localhost:3000/contacts/" + $scope.contact.id, $scope.contact)
                 .then((result) => {
+                    window.location.reload();
                     console.log(result);
                     $scope.msg = result.statusText;
                     $('#modalNewContact').modal('hide');
